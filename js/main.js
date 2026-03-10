@@ -80,6 +80,9 @@ class Game {
     this.characters.forEach(ch => {
       ch.tickAnimation();
       ch.tickBubble();
+      const nearbyCount = this.characters.filter(c => c.id !== ch.id && Math.abs(c.x-ch.x) <= 2 && Math.abs(c.y-ch.y) <= 2).length;
+      const tileType = this.world.getTile(ch.x, ch.y)?.type;
+      ch.tickNeeds(tileType, nearbyCount);
     });
 
     // Render
@@ -108,6 +111,7 @@ class Game {
       const nearby      = this.characters.filter(c => c.id !== ch.id &&
         Math.abs(c.x-ch.x) <= 5 && Math.abs(c.y-ch.y) <= 5);
       const result      = await this.llm.think(ch, worldDesc, nearby);
+      ch.applyLifeUpdate(result);
 
       // Apply thought bubble
       if (result.thought) {
@@ -125,7 +129,7 @@ class Game {
         const dir = result.action?.direction || 'stay';
         const moved = ch.applyDirection(dir, this.world);
         const tile  = this.world.getTile(ch.x, ch.y);
-        ch.remember(`Moved ${dir} → (${ch.x},${ch.y}) [${tile?.type ?? '?'}]`);
+        ch.remember(`${result.activity || 'Moved'} (${dir}) → (${ch.x},${ch.y}) [${tile?.type ?? '?'}]`);
         this._updateCharacterPanel();
       }, 1500);
 
@@ -338,7 +342,16 @@ class Game {
           <button class="remove-btn" onclick="game.removeCharacter('${ch.id}')">✕</button>
         </div>
         <div class="char-pos">📍 (${ch.x}, ${ch.y}) · ${this.world.getTile(ch.x,ch.y)?.type??'?'}</div>
+        <div class="char-mood">🙂 ${ch.mood} · ${ch.activity}</div>
         <div class="char-profile">${ch.profile.slice(0,80)}${ch.profile.length>80?'…':''}</div>
+        <div class="needs-grid">
+          ${Object.entries(ch.needs).map(([k,v]) => `
+            <div class="need-row">
+              <span>${k}</span>
+              <div class="need-bar"><i style="width:${Math.round(v)}%"></i></div>
+            </div>
+          `).join('')}
+        </div>
         <div class="char-history">
           ${ch.history.slice(0,3).map(h=>`<div class="hist-entry">↳ ${h}</div>`).join('')}
         </div>

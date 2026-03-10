@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   AI WORLD — Old School 2D RPG Style
+   AI LIFE STORIES — Modern life sim dashboard
    ═══════════════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -7,13 +7,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #0D0D0D;
-  --panel:     #111218;
-  --border:    #2A2D3A;
-  --accent:    #4AF626;   /* terminal green */
-  --accent2:   #FFD700;   /* gold */
-  --muted:     #556;
-  --text:      #CDD;
+  --bg:        #090d14;
+  --panel:     #101827;
+  --border:    #263246;
+  --accent:    #5af0a8;
+  --accent2:   #8cc8ff;
+  --muted:     #7188a6;
+  --text:      #d8e5f2;
   --danger:    #E74C3C;
   --radius:    6px;
 }
@@ -44,7 +44,7 @@ html, body {
   display: block;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  border-right: 2px solid var(--border);
+  border-right: 1px solid var(--border);
 }
 
 /* CRT scanlines overlay */
@@ -76,14 +76,14 @@ html, body {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--panel);
+  background: linear-gradient(180deg, #0f1828 0%, #0d1421 100%);
   overflow: hidden;
 }
 
 /* ── Title Bar ─────────────────────────────────────────────────────── */
 #title-bar {
-  background: #000;
-  border-bottom: 2px solid var(--accent);
+  background: linear-gradient(135deg, #111d31 0%, #0e1728 100%);
+  border-bottom: 1px solid rgba(140, 200, 255, 0.35);
   padding: 10px 14px;
   text-align: center;
 }
@@ -93,7 +93,7 @@ html, body {
   font-size: 11px;
   color: var(--accent);
   letter-spacing: 2px;
-  text-shadow: 0 0 10px var(--accent);
+  text-shadow: 0 0 14px rgba(90, 240, 168, 0.35);
   line-height: 1.6;
 }
 
@@ -108,7 +108,7 @@ html, body {
 #api-section {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
-  background: #0A0A10;
+  background: rgba(5,10,18,0.5);
 }
 
 #api-section label {
@@ -215,7 +215,7 @@ button {
 #char-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .char-card {
-  background: #161820;
+  background: rgba(15, 25, 40, 0.75);
   border-radius: var(--radius);
   padding: 8px 10px;
   border-left: 4px solid var(--accent);
@@ -262,6 +262,43 @@ button {
   color: #99A;
   margin-bottom: 4px;
   line-height: 1.5;
+}
+
+.char-mood {
+  font-size: 10px;
+  color: #9ec6e8;
+  margin-bottom: 4px;
+}
+
+.needs-grid {
+  margin: 6px 0 4px;
+}
+
+.need-row {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.need-row span {
+  color: #7b95b3;
+  font-size: 9px;
+  text-transform: capitalize;
+}
+
+.need-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: #1b2a3d;
+  overflow: hidden;
+}
+
+.need-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #ff8f8f, #ffd98c, #6af2b2);
 }
 
 .char-history {

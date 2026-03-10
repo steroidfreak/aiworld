@@ -9,7 +9,8 @@ A 2D tile-based world where characters are played autonomously by Claude AI. Set
 ## How it works
 
 - The world is a **20×20 tile grid** that changes dynamically — storms flood fields, wildfires spread through forests, meteors strike, snow falls
-- Each character calls the **Claude API (Haiku)** every 60 seconds to decide what to do
+- Each character calls the **Claude API (Haiku)** every ~35 seconds to run an autonomous life-sim turn
+- Characters now track **needs** (energy, hunger, social, fun, comfort), a mood, and current activity like a lightweight Sims-style loop
 - Characters see their surroundings, the current weather, nearby characters, and recent events, then return a JSON action: `{ thought, speech, direction }`
 - **Thought bubbles** (dashed) show their inner monologue; **speech bubbles** (solid) show what they say aloud
 - Everything runs in the browser — no backend, no database, no build step
