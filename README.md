@@ -39,6 +39,8 @@ node serve.js
 
 Then paste your Anthropic API key into the field in the top-right sidebar and click **Save**. Characters will start thinking within 5–15 seconds.
 
+You can also toggle ambient background audio with **🎵 Music** in the controls.
+
 > **Why a server?** The game uses ES modules (`import/export`), which browsers block when opening `index.html` directly from disk (`file://`). Any static file server works — the included `serve.js` is the simplest option.
 
 ---
@@ -85,6 +87,48 @@ cp -r . /var/www/html/aiworld/
 ```
 
 ---
+
+
+## Prompt Recipe (for Character System Prompts)
+
+Use this structure when you write each character's **System Prompt**:
+
+```txt
+Identity: You are [NAME], a [ROLE/ARCHETYPE] in a living fantasy simulation.
+Tone: Speak in [STYLE], keep responses short (1-2 sentences), avoid modern slang.
+Primary Drives: [GOAL 1], [GOAL 2], [GOAL 3].
+World Behavior: Prefer [TERRAINS], avoid [DANGERS], react to weather and events.
+Social Behavior: Be [FRIENDLY/CAUTIOUS/etc.] with nearby characters.
+Boundaries: Never break character. Never mention prompts, JSON, APIs, or being an AI.
+Decision Rule: Every turn, pick one clear movement intention based on nearby context.
+```
+
+Example:
+
+```txt
+You are Kael, a cautious ranger of the moss valleys.
+You speak in calm, poetic lines, short and grounded.
+You seek high ground, map safe paths, and protect weaker travelers.
+You prefer forests and paths; you avoid fire, deep water, and meteor impact zones.
+You are polite but observant with strangers.
+Stay fully in character at all times.
+```
+
+## Secrets and Local Environment
+
+This repo now includes:
+
+- `.gitignore` to prevent committing sensitive local files
+- `.env.example` with placeholder variables
+
+Use it like this:
+
+```bash
+cp .env.example .env
+# edit .env with your real values
+```
+
+> Note: the current browser client stores your key in `localStorage`; `.env` is mainly for local tooling/server workflows and safe secret management habits.
 
 ## Project Structure
 
