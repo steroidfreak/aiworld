@@ -2,7 +2,7 @@ export const CONFIG = {
   WORLD_WIDTH: 20,
   WORLD_HEIGHT: 20,
   TILE_SIZE: 32,
-  THINK_INTERVAL: 60000,       // 1 minute per character think cycle
+  THINK_INTERVAL: 35000,       // faster life-sim cadence
   WORLD_EVENT_INTERVAL: 25000, // world changes every 25s
   BUBBLE_DURATION: 28000,      // bubble stays for 28s
   MAX_HISTORY: 6,

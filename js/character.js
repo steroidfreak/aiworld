@@ -29,6 +29,25 @@ export class Character {
     // Memory
     this.history    = [];    // recent action strings
     this.mood       = 'neutral';
+    this.activity   = 'Settling in';
+    this.aspiration = this._pick([
+      'Build a cozy routine',
+      'Become the local storyteller',
+      'Master every biome in town',
+      'Find a best friend',
+      'Live a chaotic adventure',
+    ]);
+    this.needs = {
+      energy: 65 + Math.floor(Math.random() * 30),
+      hunger: 45 + Math.floor(Math.random() * 30),
+      social: 40 + Math.floor(Math.random() * 40),
+      fun:    35 + Math.floor(Math.random() * 45),
+      comfort:50 + Math.floor(Math.random() * 40),
+    };
+  }
+
+  _pick(list) {
+    return list[Math.floor(Math.random() * list.length)];
   }
 
   // ── Bubble ───────────────────────────────────────────────────────────────
@@ -103,5 +122,30 @@ export class Character {
       return true;
     }
     return false;
+  }
+
+  tickNeeds(tileType, nearbyCount = 0) {
+    this.needs.energy  = Math.max(0, this.needs.energy - 0.02);
+    this.needs.hunger  = Math.max(0, this.needs.hunger - 0.03);
+    this.needs.fun     = Math.max(0, this.needs.fun - 0.018);
+    this.needs.social  = Math.max(0, this.needs.social - (nearbyCount ? 0 : 0.025));
+    this.needs.comfort = Math.max(0, this.needs.comfort - 0.02);
+
+    if (['PATH', 'HOUSE', 'FLOWER'].includes(tileType)) this.needs.comfort = Math.min(100, this.needs.comfort + 0.05);
+    if (tileType === 'FIRE') this.needs.comfort = Math.max(0, this.needs.comfort - 0.2);
+    if (tileType === 'FLOWER' || tileType === 'MUSHROOM') this.needs.fun = Math.min(100, this.needs.fun + 0.05);
+  }
+
+  applyLifeUpdate(result = {}) {
+    if (result.mood) this.mood = result.mood;
+    if (result.activity) this.activity = result.activity;
+    if (result.needs && typeof result.needs === 'object') {
+      Object.entries(result.needs).forEach(([k,v]) => {
+        if (this.needs[k] == null) return;
+        const num = Number(v);
+        if (!Number.isFinite(num)) return;
+        this.needs[k] = Math.max(0, Math.min(100, num));
+      });
+    }
   }
 }

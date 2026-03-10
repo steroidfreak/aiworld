@@ -37,14 +37,25 @@ export class LLMEngine {
       `YOUR RECENT HISTORY:`,
       character.historyText(),
       '',
+      `SIM LIFE STATE:`,
+      `Mood: ${character.mood}`,
+      `Current activity: ${character.activity}`,
+      `Aspiration: ${character.aspiration}`,
+      `Needs (0-100): ${Object.entries(character.needs).map(([k,v]) => `${k}:${Math.round(v)}`).join(', ')}`,
+      '',
       `INSTRUCTIONS:`,
-      `Decide what ${character.name} does next. Consider the terrain, events, and surroundings.`,
+      `Decide what ${character.name} does next as an autonomous life sim agent. Consider terrain, social context, and needs.`,
+      `Prioritize whichever need is currently low while still acting in character.`,
+      `Invent a tiny slice-of-life action each turn (chatting, resting, exploring, daydreaming, etc.).`,
       `Stay in character. Be vivid but concise.`,
       '',
       `Respond ONLY with valid JSON in exactly this format:`,
       `{`,
       `  "thought": "your private inner monologue (1-2 sentences, in first person)",`,
       `  "speech":  "what you say aloud — or empty string if silent",`,
+      `  "mood": "short mood label such as inspired/calm/stressed/playful",`,
+      `  "activity": "what you are currently doing in <= 6 words",`,
+      `  "needs": { "energy": 0-100, "hunger": 0-100, "social": 0-100, "fun": 0-100, "comfort": 0-100 },`,
       `  "action":  { "type": "MOVE", "direction": "north|south|east|west|stay" }`,
       `}`,
     ].join('\n');
@@ -84,18 +95,20 @@ export class LLMEngine {
 
   _parse(text, character) {
     try {
-      // Extract first JSON object from response
-      const m = text.match(/\{[\s\S]*?\}/);
-      if (!m) throw new Error('No JSON found');
-      const obj = JSON.parse(m[0]);
+      const start = text.indexOf('{');
+      const end = text.lastIndexOf('}');
+      if (start === -1 || end === -1 || end <= start) throw new Error('No JSON found');
+      const obj = JSON.parse(text.slice(start, end + 1));
 
       // Validate fields
       const thought   = typeof obj.thought === 'string'  ? obj.thought   : '...';
       const speech    = typeof obj.speech  === 'string'  ? obj.speech    : '';
+      const mood      = typeof obj.mood === 'string' ? obj.mood : character.mood;
+      const activity  = typeof obj.activity === 'string' ? obj.activity : character.activity;
       const direction = ['north','south','east','west','stay'].includes(obj.action?.direction)
         ? obj.action.direction : 'stay';
 
-      return { thought, speech, action: { type: 'MOVE', direction } };
+      return { thought, speech, mood, activity, needs: obj.needs, action: { type: 'MOVE', direction } };
     } catch(e) {
       console.warn('[LLM] parse failed:', e, '\nRaw:', text);
       return this._fallback(character);
@@ -114,6 +127,15 @@ export class LLMEngine {
     return {
       thought : thoughts[Math.floor(Math.random() * thoughts.length)],
       speech  : '',
+      mood    : ['calm', 'curious', 'sleepy', 'playful'][Math.floor(Math.random() * 4)],
+      activity: ['wandering', 'people watching', 'taking a break', 'looking around'][Math.floor(Math.random() * 4)],
+      needs   : {
+        energy: 30 + Math.floor(Math.random() * 60),
+        hunger: 25 + Math.floor(Math.random() * 70),
+        social: 20 + Math.floor(Math.random() * 70),
+        fun: 20 + Math.floor(Math.random() * 70),
+        comfort: 20 + Math.floor(Math.random() * 70),
+      },
       action  : { type: 'MOVE', direction },
     };
   }
