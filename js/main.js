@@ -13,6 +13,7 @@ class Game {
     this.running    = false;
     this.rafId      = null;
     this.tickCount  = 0;
+    this.music      = null;
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────
@@ -173,6 +174,13 @@ class Game {
       });
     });
 
+    // Music toggle
+    const musicBtn = document.getElementById('music-toggle-btn');
+    if (musicBtn) musicBtn.addEventListener('click', async () => {
+      const enabled = await this._toggleMusic();
+      musicBtn.textContent = enabled ? '🎵 Music: On' : '🎵 Music: Off';
+    });
+
     // Add character modal
     document.getElementById('add-char-btn')?.addEventListener('click', () => {
       document.getElementById('add-char-modal').style.display = 'flex';
@@ -198,6 +206,102 @@ class Game {
       document.getElementById('add-char-modal').style.display = 'none';
       this._log(`🆕 ${name} joins the world!`);
     });
+  }
+
+  async _toggleMusic() {
+    if (!this.music) {
+      this.music = this._buildMusic();
+    }
+
+    if (this.music.enabled) {
+      this.music.stop();
+      return false;
+    }
+
+    await this.music.start();
+    return true;
+  }
+
+  _buildMusic() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) {
+      this._log('⚠️ Web Audio is not available in this browser.');
+      return { enabled: false, start: async () => {}, stop: () => {} };
+    }
+
+    const ctx = new AudioCtx();
+    const master = ctx.createGain();
+    master.gain.value = 0.06;
+    master.connect(ctx.destination);
+
+    const nodes = [];
+    const makeVoice = (type, freq, gainValue, lfoHz) => {
+      const osc = ctx.createOscillator();
+      osc.type = type;
+      osc.frequency.value = freq;
+
+      const gain = ctx.createGain();
+      gain.gain.value = gainValue;
+
+      const lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = lfoHz;
+
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = gainValue * 0.35;
+      lfo.connect(lfoGain);
+      lfoGain.connect(gain.gain);
+
+      osc.connect(gain);
+      gain.connect(master);
+
+      nodes.push(osc, gain, lfo, lfoGain);
+      return { osc, lfo };
+    };
+
+    const pad1 = makeVoice('triangle', 196.0, 0.35, 0.07);
+    const pad2 = makeVoice('sine', 246.94, 0.22, 0.05);
+    const drone = makeVoice('sawtooth', 98.0, 0.08, 0.03);
+
+    let shimmerInterval = null;
+    let enabled = false;
+
+    const start = async () => {
+      if (enabled) return;
+      if (ctx.state === 'suspended') await ctx.resume();
+
+      [pad1, pad2, drone].forEach(v => {
+        v.osc.start();
+        v.lfo.start();
+      });
+
+      shimmerInterval = setInterval(() => {
+        const now = ctx.currentTime;
+        const notePool = [261.63, 293.66, 329.63, 392.0];
+        const note = notePool[Math.floor(Math.random() * notePool.length)];
+        pad2.osc.frequency.setTargetAtTime(note * 0.5, now, 2.6);
+      }, 6000);
+
+      enabled = true;
+    };
+
+    const stop = () => {
+      if (!enabled) return;
+      if (shimmerInterval) clearInterval(shimmerInterval);
+      shimmerInterval = null;
+      nodes.forEach(n => {
+        try { n.disconnect(); } catch (_) {}
+      });
+      try { ctx.close(); } catch (_) {}
+      enabled = false;
+      this.music = null;
+    };
+
+    return {
+      get enabled() { return enabled; },
+      start,
+      stop,
+    };
   }
 
   _darken(hex) {
