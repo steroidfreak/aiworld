@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI World — LLM Character Sim</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ══ CANVAS PANEL ══════════════════════════════════════════════════ -->
+  <div id="canvas-wrap">
+    <canvas id="world-canvas"></canvas>
+    <div id="weather-overlay"></div>
+  </div>
+
+  <!-- ══ SIDEBAR ═══════════════════════════════════════════════════════ -->
+  <div id="sidebar">
+
+    <!-- Title -->
+    <div id="title-bar">
+      <h1>⚔ AI WORLD ⚔</h1>
+      <div class="subtitle">LLM Character Simulator</div>
+    </div>
+
+    <!-- API Key -->
+    <div id="api-section">
+      <label>Anthropic API Key</label>
+      <div class="api-row">
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+        <button class="btn-primary" id="save-key-btn">Save</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls">
+      <button class="btn-secondary" id="force-event-btn">⚡ World Event</button>
+      <button class="btn-secondary" id="force-think-btn">🧠 Think Now</button>
+      <button class="btn-secondary" id="add-char-btn">➕ Add Character</button>
+    </div>
+
+    <!-- Characters -->
+    <div id="char-section">
+      <h2>CHARACTERS</h2>
+    </div>
+    <div id="char-list">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Event Log -->
+    <div id="log-section">
+      <h2>WORLD LOG</h2>
+      <div id="event-log">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div id="legend">
+      <div style="margin-bottom:5px; color:#778; text-transform:uppercase; letter-spacing:1px; font-size:9px;">Tile Legend</div>
+      <div class="legend-grid">
+        <div class="legend-item"><div class="legend-swatch" style="background:#4A7C3F"></div> Grass</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#2255BB"></div> Water</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1E4A14"></div> Forest</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#6B6B6B"></div> Rock</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#B89A68"></div> Path</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#8B4513"></div> House</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#5A6878"></div> Mountain</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#CC2200"></div> Fire</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#D8E8F0"></div> Snow</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#CC4444"></div> Mushroom</div>
+      </div>
+      <div style="margin-top:8px; color:#445; font-size:9px;">
+        Characters think every 60s via Claude API.<br>
+        World events fire randomly every ~25-35s.
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+</div><!-- /app -->
+
+<!-- ══ ADD CHARACTER MODAL ══════════════════════════════════════════════ -->
+<div id="add-char-modal">
+  <div id="modal-box">
+    <h3>➕ New Character</h3>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label>Name</label>
+        <input type="text" id="new-char-name" placeholder="Character name" maxlength="20">
+      </div>
+      <div class="form-group" style="width:80px">
+        <label>Color</label>
+        <input type="color" id="new-char-color" value="#9B59B6" style="height:36px; padding:2px;">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Character Profile <span style="color:#445">(shown in sidebar)</span></label>
+      <textarea id="new-char-profile" rows="2"
+        placeholder="A brief description of who this character is..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>System Prompt <span style="color:#445">(LLM personality)</span></label>
+      <textarea id="new-char-prompt" rows="4"
+        placeholder="You are [name], a [description]. You speak in [style]. Your goal is to [goal]. You react to the world by [behavior]..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn-primary"   id="modal-add">Add to World</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
