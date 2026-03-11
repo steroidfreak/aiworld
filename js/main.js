@@ -14,6 +14,14 @@ class Game {
     this.rafId      = null;
     this.tickCount  = 0;
     this.music      = null;
+    this.progress   = {
+      level: 1,
+      xp: 0,
+      xpToNext: 100,
+      weatherEvents: 0,
+      socialTurns: 0,
+      discoveredTiles: new Set(),
+    };
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────
@@ -31,6 +39,7 @@ class Game {
 
     // Bind UI
     this._bindUI();
+    this._updateProgressUI();
 
     // Start
     this.running = true;
@@ -83,6 +92,7 @@ class Game {
       const nearbyCount = this.characters.filter(c => c.id !== ch.id && Math.abs(c.x-ch.x) <= 2 && Math.abs(c.y-ch.y) <= 2).length;
       const tileType = this.world.getTile(ch.x, ch.y)?.type;
       ch.tickNeeds(tileType, nearbyCount);
+      this._registerDiscovery(ch);
     });
 
     // Render
@@ -111,6 +121,7 @@ class Game {
       const nearby      = this.characters.filter(c => c.id !== ch.id &&
         Math.abs(c.x-ch.x) <= 5 && Math.abs(c.y-ch.y) <= 5);
       const result      = await this.llm.think(ch, worldDesc, nearby);
+      if (nearby.length > 0 && (result.speech || result.thought)) this._awardSocialTurn();
       ch.applyLifeUpdate(result);
 
       // Apply thought bubble
@@ -129,6 +140,7 @@ class Game {
         const dir = result.action?.direction || 'stay';
         const moved = ch.applyDirection(dir, this.world);
         const tile  = this.world.getTile(ch.x, ch.y);
+        if (moved) this._gainXP(2, `Exploration: ${ch.name} moved`);
         ch.remember(`${result.activity || 'Moved'} (${dir}) → (${ch.x},${ch.y}) [${tile?.type ?? '?'}]`);
         this._updateCharacterPanel();
       }, 1500);
@@ -145,6 +157,7 @@ class Game {
     const fire = () => {
       if (!this.running) return;
       this.world.triggerRandomEvent();
+      this._awardWeatherEvent();
       this._updateEventLog();
       setTimeout(fire, CONFIG.WORLD_EVENT_INTERVAL + Math.random() * 10000);
     };
@@ -167,6 +180,7 @@ class Game {
     const eventBtn = document.getElementById('force-event-btn');
     if (eventBtn) eventBtn.addEventListener('click', () => {
       this.world.triggerRandomEvent();
+      this._awardWeatherEvent();
       this._updateEventLog();
     });
 
@@ -306,6 +320,80 @@ class Game {
       start,
       stop,
     };
+  }
+
+
+  _registerDiscovery(ch) {
+    const tile = this.world.getTile(ch.x, ch.y);
+    if (!tile) return;
+    const key = `${tile.type}_${ch.x}_${ch.y}`;
+    if (this.progress.discoveredTiles.has(key)) return;
+    this.progress.discoveredTiles.add(key);
+    this._gainXP(4, `${ch.name} discovered a new place`);
+    this._updateProgressUI();
+  }
+
+  _awardWeatherEvent() {
+    this.progress.weatherEvents++;
+    this._gainXP(10, 'World event survived');
+    this._updateProgressUI();
+  }
+
+  _awardSocialTurn() {
+    this.progress.socialTurns++;
+    this._gainXP(6, 'A social interaction happened');
+    this._updateProgressUI();
+  }
+
+  _gainXP(amount, reason = 'Progress') {
+    this.progress.xp += amount;
+    let leveled = false;
+    while (this.progress.xp >= this.progress.xpToNext) {
+      this.progress.xp -= this.progress.xpToNext;
+      this.progress.level++;
+      this.progress.xpToNext = Math.round(this.progress.xpToNext * 1.22);
+      leveled = true;
+    }
+    if (leveled) this._log(`🏆 World leveled up! You reached Lv.${this.progress.level}.`);
+    if (reason) this.world._log(`✨ +${amount} XP · ${reason}`);
+    this._updateProgressUI();
+  }
+
+  _updateProgressUI() {
+    const levelEl = document.getElementById('world-level');
+    const fillEl = document.getElementById('xp-fill');
+    const xpLabelEl = document.getElementById('xp-label');
+    const rankEl = document.getElementById('story-rank');
+    const weatherEl = document.getElementById('quest-weather');
+    const socialEl = document.getElementById('quest-social');
+    const exploreEl = document.getElementById('quest-explore');
+
+    if (!levelEl || !fillEl || !xpLabelEl) return;
+    const pct = Math.max(0, Math.min(100, (this.progress.xp / this.progress.xpToNext) * 100));
+    levelEl.textContent = `Lv.${this.progress.level}`;
+    fillEl.style.width = `${pct}%`;
+    xpLabelEl.textContent = `${Math.floor(this.progress.xp)} / ${this.progress.xpToNext} XP`;
+
+    if (rankEl) {
+      const ranks = ['Dreamer', 'Builder', 'Strategist', 'Legend'];
+      rankEl.textContent = `Rank: ${ranks[Math.min(ranks.length - 1, Math.floor((this.progress.level - 1) / 2))]}`;
+    }
+
+    if (weatherEl) {
+      const count = Math.min(2, this.progress.weatherEvents);
+      weatherEl.textContent = `☁️ Survive 2 world events (${count}/2)`;
+      weatherEl.classList.toggle('done', this.progress.weatherEvents >= 2);
+    }
+    if (socialEl) {
+      const count = Math.min(3, this.progress.socialTurns);
+      socialEl.textContent = `🗣 Trigger 3 social turns (${count}/3)`;
+      socialEl.classList.toggle('done', this.progress.socialTurns >= 3);
+    }
+    if (exploreEl) {
+      const count = Math.min(6, this.progress.discoveredTiles.size);
+      exploreEl.textContent = `🧭 Visit 6 unique tiles (${count}/6)`;
+      exploreEl.classList.toggle('done', this.progress.discoveredTiles.size >= 6);
+    }
   }
 
   _darken(hex) {
