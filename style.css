@@ -184,6 +184,84 @@ button {
   flex-wrap: wrap;
 }
 
+
+/* ── Story Arc / Gamification ─────────────────────────────────────── */
+#progress-section {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(22,35,56,0.65), rgba(12,20,34,0.55));
+}
+
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 7px;
+}
+
+.progress-head h2 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #9de9ff;
+  letter-spacing: 1px;
+}
+
+#story-rank {
+  font-size: 9px;
+  color: #84f0c0;
+}
+
+.xp-line {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 7px;
+}
+
+#world-level,
+#xp-label {
+  font-size: 9px;
+  color: #89a3c4;
+}
+
+.xp-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #12243a;
+  border: 1px solid #224466;
+  overflow: hidden;
+}
+
+.xp-track i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #53e2ff, #5af0a8);
+  transition: width 0.25s ease;
+}
+
+#quest-row {
+  display: grid;
+  gap: 5px;
+}
+
+.quest-chip {
+  font-size: 9px;
+  line-height: 1.5;
+  color: #93aac7;
+  border: 1px solid #24364f;
+  background: rgba(9,18,30,0.8);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.quest-chip.done {
+  color: #b6ffd9;
+  border-color: rgba(90, 240, 168, 0.65);
+  box-shadow: 0 0 10px rgba(90, 240, 168, 0.25);
+}
+
 /* ── Character Panel ───────────────────────────────────────────────── */
 #char-section {
   padding: 8px 12px 4px;
